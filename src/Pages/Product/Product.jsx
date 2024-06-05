@@ -124,7 +124,7 @@ function Product() {
       )}
       <div>
         <button className="btn product-change-btn" onClick={handleClick}>
-          Choose
+          Change color
         </button>
       </div>
     </>
