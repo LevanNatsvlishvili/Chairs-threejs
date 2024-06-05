@@ -1,5 +1,5 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
-import { Canvas, useFrame, useLoader } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { gsap } from 'gsap';
@@ -84,7 +84,6 @@ function Product() {
     const indexOf = chairs.indexOf(curr);
     if (indexOf === 2) {
       setCurr(chairs[0]);
-
       return;
     }
     setCurr(chairs[indexOf + 1]);
@@ -107,19 +106,22 @@ function Product() {
     loadModels();
   }, []);
 
-  console.log(curr?.modelPath);
+  console.log(models);
 
   return (
     <>
-      {/* R3F Canvas */}
-      <Canvas concurrent colorManagement camera={{ position: [0, 0, 120], fov: 70 }}>
-        <Suspense>
-          {/* Lights Component */}
-          <Lights />
-          {!!models && <Chair position={0} {...curr} modelPath={models[curr.modelPath]} />}
-        </Suspense>
-      </Canvas>
-
+      {models ? (
+        <Canvas camera={{ position: [0, 0, 120], fov: 70 }}>
+          <Suspense fallback={<div className="spinner"></div>}>
+            <Lights />
+            {!!models && <Chair position={0} {...curr} modelPath={models[curr.modelPath]} />}
+          </Suspense>
+        </Canvas>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <div className="spinner"></div>
+        </div>
+      )}
       <div>
         <button className="btn product-change-btn" onClick={handleClick}>
           Choose

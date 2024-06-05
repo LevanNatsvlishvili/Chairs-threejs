@@ -120,3 +120,22 @@ header {
   left: 50%;
   transform: translateX(-50%);
 }
+
+@keyframes spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  border: 16px solid #f3f3f3; /* Light grey */
+  border-top: 16px solid #f2c649; /* Blue */
+  border-radius: 50%;
+  width: 250px;
+  height: 250px;
+  animation: spinner 2s linear infinite;
+  margin: auto;
+}

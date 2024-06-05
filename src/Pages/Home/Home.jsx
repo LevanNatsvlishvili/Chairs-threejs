@@ -6,11 +6,6 @@ import { Section } from './Components/section';
 import state from './Components/state';
 import { useInView } from 'react-intersection-observer';
 
-const Model = ({ path }) => {
-  const gltf = useLoader(GLTFLoader, `/${path}/scene.gltf`);
-  return <primitive object={gltf.scene} dispose={null} />;
-};
-
 const Lights = () => {
   return (
     <>
@@ -31,14 +26,16 @@ function Chair({ bgColor, position, modelPath, title, domContent }) {
   });
 
   useEffect(() => {
-    inView && (document.body.style.background = bgColor);
-  }, [inView]);
+    if (inView) {
+      document.body.style.background = bgColor;
+    }
+  }, [inView, bgColor]);
 
   return (
     <Section offset={1} factor={1.5}>
       <group position={[0, position, 0]}>
         <mesh ref={ref} position={[0, -35, 0]}>
-          <Model path={modelPath} />
+          <primitive object={modelPath.scene} dispose={null} />
         </mesh>
         <Html portal={domContent}>
           <div
@@ -67,22 +64,55 @@ function Chair({ bgColor, position, modelPath, title, domContent }) {
 function Home() {
   const [events] = useState();
   const domContent = useRef();
+  const [models, setModels] = useState(null);
+
   const scrollArea = useRef();
   const onScroll = (e) => (state.top.current = e.target.scrollTop);
   useEffect(() => void onScroll({ target: scrollArea.current }), []);
 
+  useEffect(() => {
+    const loadModels = async () => {
+      const loader = new GLTFLoader();
+      const blueModel = await loader.loadAsync('/armchair-blue/scene.gltf');
+      const greyModel = await loader.loadAsync('/armchair-grey/scene.gltf');
+      const pinkModel = await loader.loadAsync('/armchair-pink/scene.gltf');
+      setModels([
+        { path: blueModel, position: 250, bgColor: '#f15945', title: 'Blue' },
+        { path: greyModel, position: 0, bgColor: '#571ec1', title: 'Grey' },
+        { path: pinkModel, position: -250, bgColor: '#F2C649', title: 'Pink' },
+      ]);
+    };
+    loadModels();
+  }, []);
+
+  console.log(models);
+
   return (
     <>
-      {/* R3F Canvas */}
-      <Canvas concurrent colorManagement camera={{ position: [0, 0, 120], fov: 70 }}>
-        <Suspense>
-          {/* Lights Component */}
-          <Lights />
-          <Chair domContent={domContent} modelPath="armchair-blue" position={250} title="Blue" bgColor={'#f15945'} />
-          <Chair domContent={domContent} modelPath="armchair-grey" position={0} title="Grey" bgColor={'#571ec1'} />
-          <Chair domContent={domContent} modelPath="armchair-pink" position={-250} title="Pink" bgColor={'#F2C649 '} />
-        </Suspense>
-      </Canvas>
+      {models ? (
+        <>
+          <Canvas camera={{ position: [0, 0, 120], fov: 70 }}>
+            <Suspense>
+              <Lights />
+              {models &&
+                models.map((model, index) => (
+                  <Chair
+                    key={index}
+                    domContent={domContent}
+                    modelPath={model.path}
+                    position={model.position}
+                    title={model.title}
+                    bgColor={model.bgColor}
+                  />
+                ))}
+            </Suspense>
+          </Canvas>
+        </>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <div className="spinner"></div>
+        </div>
+      )}
       <div className="scrollArea" ref={scrollArea} onScroll={onScroll} {...events}>
         <div style={{ position: 'sticky', top: 0 }} ref={domContent} />
         <div style={{ height: `calc(${state.sections} * 100vh)`, width: '100%' }} />
